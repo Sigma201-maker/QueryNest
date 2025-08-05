@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAT Prep Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .setup-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="number"] {
+            width: 100px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 18px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .time-presets {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #ddd;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-1px);
+        }
+
+        .preset-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .timer-display {
+            font-size: 4em;
+            font-weight: bold;
+            color: #333;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer-display.warning {
+            color: #ff4757;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .done-button {
+            background: linear-gradient(45deg, #2ed573, #1e90ff);
+            font-size: 20px;
+            padding: 18px 40px;
+        }
+
+        .voice-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            font-size: 16px;
+            padding: 12px 25px;
+        }
+
+        .voice-button.active {
+            background: linear-gradient(45deg, #2ed573, #1e90ff);
+        }
+
+        .session-info {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .session-info h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .voice-status {
+            background: #e8f5e8;
+            color: #2d6a2d;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+            border: 2px solid #90ee90;
+        }
+
+        .voice-status.listening {
+            background: #fff3cd;
+            color: #856404;
+            border-color: #ffeaa7;
+            animation: pulse 1s infinite;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .progress-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+
+        .progress-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .progress-item.success {
+            border-left-color: #2ed573;
+        }
+
+        .progress-item.partial {
+            border-left-color: #ffa502;
+        }
+
+        .progress-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SAT Prep Timer</h1>
+
+        <div id="setup" class="setup-section">
+            <div class="input-group">
+                <label for="questionTarget">Questions to complete:</label>
+                <input type="number" id="questionTarget" value="5" min="1" max="20">
+            </div>
+            <div class="input-group">
+                <label for="timeLimit">Time limit (seconds):</label>
+                <input type="number" id="timeLimit" value="60" min="30" max="300" step="30">
+                <div class="time-presets">
+                    <button type="button" onclick="setTimePreset(30)" class="preset-btn">30s</button>
+                    <button type="button" onclick="setTimePreset(60)" class="preset-btn">1min</button>
+                    <button type="button" onclick="setTimePreset(90)" class="preset-btn">1.5min</button>
+                    <button type="button" onclick="setTimePreset(120)" class="preset-btn">2min</button>
+                </div>
+            </div>
+            <button onclick="startSession()">Start Practice Session</button>
+        </div>
+
+        <div id="session" class="hidden">
+            <div class="session-info">
+                <h3>Session #<span id="sessionNumber">1</span></h3>
+                <p>Target: <span id="currentTarget">5</span> questions in <span id="timeDisplay">1:00</span></p>
+                <div id="voiceStatus" class="voice-status">🎤 Say "done" or "complete" to mark questions!</div>
+            </div>
+
+            <div class="timer-display" id="timer">1:00</div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-number" id="completedCount">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="remainingCount">5</div>
+                    <div class="stat-label">Remaining</div>
+                </div>
+            </div>
+
+            <div>
+                <button class="done-button" onclick="completeQuestion()" id="doneButton">
+                    Question Complete! ✓
+                </button>
+                <button onclick="toggleVoiceRecognition()" id="voiceButton" class="voice-button">
+                    🎤 Voice: OFF
+                </button>
+                <br>
+                <button onclick="resetSession()">Reset Session</button>
+                <button onclick="showProgress()">View Progress</button>
+            </div>
+        </div>
+
+        <div id="progress" class="hidden">
+            <h2>📊 Your Progress</h2>
+            <div id="progressStats"></div>
+            <div id="progressChart"></div>
+            <button onclick="closeProgress()">Back to Practice</button>
+            <button onclick="clearProgress()">Clear Data</button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        var currentSession = 1;
+        var targetQuestions = 5;
+        var completedQuestions = 0;
+        var timeLeft = 60;
+        var timeLimitSeconds = 60;
+        var timerInterval;
+        var isSessionActive = false;
+        var recognition;
+        var isListening = false;
+        var progressData = [];
+        var sessionStartTime;
+
+        // Initialize progress data from localStorage
+        try {
+            var stored = localStorage.getItem('satProgressData');
+            if (stored) {
+                progressData = JSON.parse(stored);
+            }
+        } catch (e) {
+            progressData = [];
+        }
+
+        // Time formatting function
+        function formatTime(seconds) {
+            var minutes = Math.floor(seconds / 60);
+            var secs = seconds % 60;
+            if (minutes > 0) {
+                return minutes + ':' + (secs < 10 ? '0' : '') + secs;
+            } else {
+                return '0:' + (secs < 10 ? '0' : '') + secs;
+            }
+        }
+
+        // Set time preset
+        function setTimePreset(seconds) {
+            document.getElementById('timeLimit').value = seconds;
+            var buttons = document.querySelectorAll('.preset-btn');
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+            event.target.classList.add('active');
+        }
+
+        // Start session function
+        function startSession() {
+            try {
+                targetQuestions = parseInt(document.getElementById('questionTarget').value);
+                timeLimitSeconds = parseInt(document.getElementById('timeLimit').value);
+                completedQuestions = 0;
+                timeLeft = timeLimitSeconds;
+                isSessionActive = true;
+                sessionStartTime = new Date();
+
+                document.getElementById('setup').classList.add('hidden');
+                document.getElementById('session').classList.remove('hidden');
+                document.getElementById('progress').classList.add('hidden');
+
+                updateDisplay();
+                startTimer();
+
+                // Initialize voice recognition
+                initializeVoiceRecognition();
+            } catch (error) {
+                console.error('Error starting session:', error);
+                alert('Error starting session. Please try again.');
+            }
+        }
+
+        // Start timer
+        function startTimer() {
+            timerInterval = setInterval(function() {
+                timeLeft--;
+                updateTimerDisplay();
+                updateProgressBar();
+
+                if (timeLeft <= 10) {
+                    document.getElementById('timer').classList.add('warning');
+                }
+
+                if (timeLeft <= 0) {
+                    endSession();
+                }
+            }, 1000);
+        }
+
+        // Update display
+        function updateDisplay() {
+            document.getElementById('sessionNumber').textContent = currentSession;
+            document.getElementById('currentTarget').textContent = targetQuestions;
+            document.getElementById('timeDisplay').textContent = formatTime(timeLimitSeconds);
+            document.getElementById('completedCount').textContent = completedQuestions;
+            document.getElementById('remainingCount').textContent = Math.max(0, targetQuestions - completedQuestions);
+            updateProgressBar();
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            document.getElementById('timer').textContent = formatTime(timeLeft);
+        }
+
+        // Update progress bar
+        function updateProgressBar() {
+            var progress = (completedQuestions / targetQuestions) * 100;
+            document.getElementById('progressBar').style.width = Math.min(100, progress) + '%';
+        }
+
+        // Complete question
+        function completeQuestion() {
+            if (!isSessionActive) return;
+
+            completedQuestions++;
+            updateDisplay();
+
+            if (completedQuestions >= targetQuestions) {
+                endSession();
+            }
+        }
+
+        // End session
+        function endSession() {
+            clearInterval(timerInterval);
+            isSessionActive = false;
+            document.getElementById('timer').classList.remove('warning');
+
+            if (recognition && isListening) {
+                recognition.stop();
+                isListening = false;
+            }
+
+            var missed = Math.max(0, targetQuestions - completedQuestions);
+            var sessionData = {
+                session: currentSession,
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString(),
+                target: targetQuestions,
+                completed: completedQuestions,
+                missed: missed,
+                success: completedQuestions >= targetQuestions,
+                duration: timeLimitSeconds - timeLeft,
+                timeLimit: timeLimitSeconds
+            };
+
+            progressData.push(sessionData);
+            try {
+                localStorage.setItem('satProgressData', JSON.stringify(progressData));
+            } catch (e) {
+                console.log('Could not save progress data');
+            }
+
+            if (completedQuestions >= targetQuestions) {
+                setTimeout(function() {
+                    currentSession++;
+                    startSession();
+                }, 1500);
+
+                showTemporaryMessage('🎉 Session ' + currentSession + ' Complete! Starting next session...', 'success');
+            } else {
+                targetQuestions += missed;
+                setTimeout(function() {
+                    currentSession++;
+                    document.getElementById('questionTarget').value = targetQuestions;
+                    document.getElementById('timeLimit').value = timeLimitSeconds;
+                    startSession();
+                }, 2000);
+
+                showTemporaryMessage('⚡ Missed ' + missed + ' questions. Next target: ' + targetQuestions + '. Starting now...', 'warning');
+            }
+        }
+
+        // Show temporary message
+        function showTemporaryMessage(message, type) {
+            var messageDiv = document.createElement('div');
+            messageDiv.innerHTML = message;
+            messageDiv.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: ' +
+                (type === 'success' ? '#2ed573' : '#ffa502') + '; color: white; padding: 15px 30px; border-radius: 10px; font-weight: bold; z-index: 1000; box-shadow: 0 10px 20px rgba(0,0,0,0.2);';
+            document.body.appendChild(messageDiv);
+
+            setTimeout(function() {
+                if (messageDiv.parentNode) {
+                    document.body.removeChild(messageDiv);
+                }
+            }, 1500);
+        }
+
+        // Initialize voice recognition
+        function initializeVoiceRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                try {
+                    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    recognition = new SpeechRecognition();
+
+                    recognition.continuous = true;
+                    recognition.interimResults = false;
+                    recognition.lang = 'en-US';
+
+                    recognition.onstart = function() {
+                        isListening = true;
+                        document.getElementById('voiceStatus').innerHTML = '🎤 Listening for "done" or "complete"...<br><small>Speak clearly</small>';
+                        document.getElementById('voiceStatus').classList.add('listening');
+                        document.getElementById('voiceButton').textContent = '🎤 Voice: ON';
+                        document.getElementById('voiceButton').classList.add('active');
+                    };
+
+                    recognition.onresult = function(event) {
+                        var lastResult = event.results[event.results.length - 1];
+                        var transcript = lastResult[0].transcript.toLowerCase().trim();
+
+                        if (transcript.indexOf('done') !== -1 || transcript.indexOf('complete') !== -1) {
+                            completeQuestion();
+                            document.getElementById('voiceStatus').innerHTML = '✅ Question marked complete!<br><small>Keep going!</small>';
+                            setTimeout(function() {
+                                if (isListening && isSessionActive) {
+                                    document.getElementById('voiceStatus').innerHTML = '🎤 Listening for "done" or "complete"...<br><small>Speak clearly</small>';
+                                }
+                            }, 1000);
+                        }
+                    };
+
+                    recognition.onerror = function(event) {
+                        var errorMessage = '❌ Voice error: ' + event.error;
+                        document.getElementById('voiceStatus').innerHTML = errorMessage;
+                        document.getElementById('voiceStatus').classList.remove('listening');
+                        document.getElementById('voiceButton').textContent = '🎤 Voice: OFF';
+                        document.getElementById('voiceButton').classList.remove('active');
+                        isListening = false;
+                    };
+
+                    recognition.onend = function() {
+                        if (isSessionActive && isListening) {
+                            setTimeout(function() {
+                                if (isSessionActive && isListening) {
+                                    try {
+                                        recognition.start();
+                                    } catch (e) {
+                                        isListening = false;
+                                        document.getElementById('voiceStatus').innerHTML = '❌ Voice stopped<br><small>Click voice button to restart</small>';
+                                    }
+                                }
+                            }, 100);
+                        }
+                    };
+
+                    recognition.start();
+
+                } catch (error) {
+                    document.getElementById('voiceStatus').innerHTML = '❌ Voice setup failed<br><small>Your browser may not support this feature</small>';
+                }
+            } else {
+                document.getElementById('voiceStatus').innerHTML = '❌ Voice recognition not supported<br><small>Try Chrome, Edge, or Safari</small>';
+            }
+        }
+
+        // Toggle voice recognition
+        function toggleVoiceRecognition() {
+            if (!recognition) {
+                initializeVoiceRecognition();
+                return;
+            }
+
+            if (isListening) {
+                recognition.stop();
+                isListening = false;
+                document.getElementById('voiceStatus').innerHTML = '🎤 Voice recognition off<br><small>Click voice button to turn on</small>';
+                document.getElementById('voiceStatus').classList.remove('listening');
+                document.getElementById('voiceButton').textContent = '🎤 Voice: OFF';
+                document.getElementById('voiceButton').classList.remove('active');
+            } else {
+                try {
+                    recognition.start();
+                } catch (error) {
+                    document.getElementById('voiceStatus').innerHTML = '❌ Could not start voice<br><small>Try refreshing the page</small>';
+                }
+            }
+        }
+
+        // Show progress
+        function showProgress() {
+            document.getElementById('session').classList.add('hidden');
+            document.getElementById('progress').classList.remove('hidden');
+
+            if (progressData.length === 0) {
+                document.getElementById('progressStats').innerHTML = '<p>No practice data yet. Complete some sessions to see your progress!</p>';
+                return;
+            }
+
+            var totalSessions = progressData.length;
+            var successfulSessions = 0;
+            var totalQuestions = 0;
+
+            for (var i = 0; i < progressData.length; i++) {
+                if (progressData[i].success) successfulSessions++;
+                totalQuestions += progressData[i].completed;
+            }
+
+            var averageCompleted = (totalQuestions / totalSessions).toFixed(1);
+            var successRate = ((successfulSessions / totalSessions) * 100).toFixed(1);
+
+            var summaryHTML = '<div class="progress-summary">' +
+                '<div class="stat-box"><div class="stat-number">' + totalSessions + '</div><div class="stat-label">Total Sessions</div></div>' +
+                '<div class="stat-box"><div class="stat-number">' + successRate + '%</div><div class="stat-label">Success Rate</div></div>' +
+                '<div class="stat-box"><div class="stat-number">' + averageCompleted + '</div><div class="stat-label">Avg Questions/Min</div></div>' +
+                '<div class="stat-box"><div class="stat-number">' + totalQuestions + '</div><div class="stat-label">Total Questions</div></div>' +
+                '</div>';
+
+            var recentSessions = progressData.slice(-10).reverse();
+            var sessionsHTML = '';
+            for (var i = 0; i < recentSessions.length; i++) {
+                var session = recentSessions[i];
+                sessionsHTML += '<div class="progress-item ' + (session.success ? 'success' : 'partial') + '">' +
+                    '<strong>Session ' + session.session + '</strong> - ' + session.date + ' ' + session.time + '<br>' +
+                    'Target: ' + session.target + ' in ' + formatTime(session.timeLimit) + ' | Completed: ' + session.completed + ' | ' +
+                    (session.success ? '✅ Success!' : '❌ Missed: ' + session.missed) +
+                    '</div>';
+            }
+
+            document.getElementById('progressStats').innerHTML = summaryHTML +
+                '<h3>Recent Sessions:</h3><div class="progress-container">' + sessionsHTML + '</div>';
+        }
+
+        // Close progress
+        function closeProgress() {
+            document.getElementById('progress').classList.add('hidden');
+            document.getElementById('session').classList.remove('hidden');
+        }
+
+        // Clear progress
+        function clearProgress() {
+            if (confirm('Are you sure you want to clear all progress data?')) {
+                progressData = [];
+                try {
+                    localStorage.removeItem('satProgressData');
+                } catch (e) {
+                    console.log('Could not clear progress data');
+                }
+                document.getElementById('progressStats').innerHTML = '<p>Progress data cleared!</p>';
+            }
+        }
+
+        // Reset session
+        function resetSession() {
+            clearInterval(timerInterval);
+            if (recognition && isListening) {
+                recognition.stop();
+                isListening = false;
+            }
+            isSessionActive = false;
+            currentSession = 1;
+            targetQuestions = 5;
+            timeLimitSeconds = 60;
+            completedQuestions = 0;
+            timeLeft = 60;
+
+            document.getElementById('questionTarget').value = 5;
+            document.getElementById('timeLimit').value = 60;
+            document.getElementById('timer').classList.remove('warning');
+            document.getElementById('setup').classList.remove('hidden');
+            document.getElementById('session').classList.add('hidden');
+            document.getElementById('progress').classList.add('hidden');
+        }
+
+        // Initialize display on page load
+        updateTimerDisplay();
+    </script>
+</body>
+</html>
